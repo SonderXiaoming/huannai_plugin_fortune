@@ -3,6 +3,7 @@ from hoshino import Service, priv
 from nonebot import MessageSegment
 from .config import FortuneThemesDict
 from .data_source import fortune_manager
+from .extra_config_utils import group_rule_str2list, group_rule_list2str
 
 sv = Service('今日运势', enable_on_default=True, visible=True)
 
@@ -19,7 +20,11 @@ __fortune_usage__ = f'''
 async def _(bot, ev):
     gid: str = str(ev.group_id)
     theme: str = fortune_manager.get_group_theme(gid)
-    await bot.finish(ev, f"当前群抽签主题：{FortuneThemesDict[theme][0]}")
+    themelist = group_rule_str2list(theme)
+    themes_ret_str = ""
+    for _theme in themelist:
+        themes_ret_str = themes_ret_str + FortuneThemesDict[_theme][0] + ","
+    await bot.finish(ev, f"当前群抽签主题：{themes_ret_str[:-1]}")
 
 @sv.on_fullmatch("主题列表")
 async def theme_list(bot, ev):
@@ -82,6 +87,40 @@ async def theme_setting(bot, ev):
             else:
                 await bot.finish(ev, "已设置当前群抽签主题~")
 
+    await bot.finish(ev, "还没有这种抽签主题哦~")
+
+@sv.on_rex(r"^主题启用(.*?)$")
+async def theme_setting_2(bot, ev):
+    gid: str = str(ev.group_id)
+    for theme in FortuneThemesDict:
+        if ev["match"].group(0).strip()[4:] in FortuneThemesDict[theme]:
+            if not fortune_manager.divination_setting_2(theme, gid, True):
+                await bot.finish(ev, "该抽签主题已启用或者不存在该主题~")
+            else:
+                theme: str = fortune_manager._group_rules[gid]
+                themelist = group_rule_str2list(theme)
+                themes_ret_str = ""
+                for _theme in themelist:
+                    themes_ret_str = themes_ret_str + FortuneThemesDict[_theme][0] + ","
+                await bot.finish(ev, f"已启用,当前已启用：{themes_ret_str[:-1]}")
+    
+    await bot.finish(ev, "还没有这种抽签主题哦~")
+
+@sv.on_rex(r"^主题禁用(.*?)$")
+async def theme_setting_2(bot, ev):
+    gid: str = str(ev.group_id)
+    for theme in FortuneThemesDict:
+        if ev["match"].group(0).strip()[4:] in FortuneThemesDict[theme]:
+            if not fortune_manager.divination_setting_2(theme, gid, False):
+                await bot.finish(ev, "该抽签主题未启用或者不存在该主题~")
+            else:
+                theme: str = fortune_manager._group_rules[gid]
+                themelist = group_rule_str2list(theme)
+                themes_ret_str = ""
+                for _theme in themelist:
+                    themes_ret_str = themes_ret_str + FortuneThemesDict[_theme][0] + ","
+                await bot.finish(ev, f"已禁用,当前已启用：{themes_ret_str[:-1]}")
+    
     await bot.finish(ev, "还没有这种抽签主题哦~")
 
 @sv.on_rex(r"^重置(抽签)?主题$")

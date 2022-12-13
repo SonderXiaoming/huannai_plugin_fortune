@@ -8,6 +8,7 @@ except ModuleNotFoundError:
 
 from .config import fortune_config, FortuneThemesDict
 from .utils import drawing, themes_flag_check
+from .extra_config_utils import group_rule_list2str, group_rule_str2list
 
 class FortuneManager:
     
@@ -44,15 +45,18 @@ class FortuneManager:
         
         return None
 
+
+
     def divine(self, gid: str, uid: str, nickname: str, _theme: Optional[str] = None, spec_path: Optional[str] = None) -> Tuple[bool, Union[Path, None]]:
         '''
             今日运势抽签，主题已确认合法
         '''
         self._init_user_data(gid ,uid, nickname)
         self._load_group_rules()
-        
+        themes_activacted = group_rule_str2list(self._group_rules[gid]) # 多主题支持：不改变json结构，不同主题用逗号分隔
+        theme_rand = themes_activacted[random.randint(0, len(themes_activacted)-1)] # 随机挑选一个主题
         if not isinstance(_theme, str):
-            theme: str = self._group_rules[gid]
+            theme: str = theme_rand
         else:
             theme: str = _theme
             
@@ -140,12 +144,47 @@ class FortuneManager:
         '''
         return _theme == "random" or themes_flag_check(_theme)
 
+    def divination_setting_2(self, theme: str, gid: str, enable:bool = True) -> bool:
+        '''
+            新-分群管理抽签设置
+        '''
+        self._load_group_rules()
+        g_r_list = group_rule_str2list(self._group_rules[gid])
+        if 'random' in g_r_list:
+            g_r_list.remove("random")
+        if enable:
+            if theme in g_r_list:
+                return False
+            elif self.theme_enable_check(theme):
+                g_r_list.append(theme)
+                self._group_rules[gid] = group_rule_list2str(g_r_list)
+                self._save_group_rules()
+                return True
+            else:
+                return False
+        elif theme in g_r_list:
+            g_r_list.remove(theme)
+            self._group_rules[gid] = group_rule_list2str(g_r_list)
+            self._save_group_rules()
+            return True
+        else:
+            return False
+
+        '''
+        if self.theme_enable_check(theme):
+            self._group_rules[gid] = theme
+            self._save_group_rules()
+            return True
+        
+        return False
+        '''
+    
     def divination_setting(self, theme: str, gid: str) -> bool:
         '''
             分群管理抽签设置
         '''
         self._load_group_rules()
-        
+
         if self.theme_enable_check(theme):
             self._group_rules[gid] = theme
             self._save_group_rules()
