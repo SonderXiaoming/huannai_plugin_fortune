@@ -148,8 +148,7 @@ class FortuneManager:
         '''
             新-分群管理抽签设置
         '''
-        self._load_group_rules()
-        g_r_list = group_rule_str2list(self._group_rules[gid])
+        g_r_list = group_rule_str2list(self.get_group_theme(str(gid)))
         if 'random' in g_r_list:
             g_r_list.remove("random")
         if enable:

@@ -3,7 +3,7 @@ from hoshino import Service, priv
 from nonebot import MessageSegment
 from .config import FortuneThemesDict
 from .data_source import fortune_manager
-from .extra_config_utils import group_rule_str2list, group_rule_list2str
+from .extra_config_utils import group_rule_str2list
 
 sv = Service('今日运势', enable_on_default=True, visible=True)
 
@@ -14,22 +14,19 @@ __fortune_usage__ = f'''
 [设置xx签] 设置群抽签主题
 [重置主题] 重置群抽签主题
 [主题列表] 查看可选的抽签主题
-[查看主题] 查看群抽签主题'''.strip()
+[查看主题] 查看群抽签主题
+[主题启用xx] 启用xx主题
+[主题禁用xx] 禁用xx主题
+'''.strip()
 
 @sv.on_rex(r"^查看(抽签)?主题$")
-async def _(bot, ev):
-    gid: str = str(ev.group_id)
-    theme: str = fortune_manager.get_group_theme(gid)
-    themelist = group_rule_str2list(theme)
-    themes_ret_str = ""
-    for _theme in themelist:
-        themes_ret_str = themes_ret_str + FortuneThemesDict[_theme][0] + ","
-    await bot.finish(ev, f"当前群抽签主题：{themes_ret_str[:-1]}")
+async def theme_check(bot, ev):
+    themes_ret_str = ",".join([FortuneThemesDict[_theme][0] for _theme in group_rule_str2list(fortune_manager.get_group_theme(str(ev.group_id)))])
+    await bot.finish(ev, f"当前群抽签主题：{themes_ret_str}")
 
 @sv.on_fullmatch("主题列表")
 async def theme_list(bot, ev):
-    msg: str = fortune_manager.get_main_theme_list()
-    await bot.finish(ev, msg)
+    await bot.finish(ev, fortune_manager.get_main_theme_list())
 
 @sv.on_prefix('运势','今日运势')
 async def portune(bot, ev):
@@ -79,6 +76,8 @@ async def _(bot, ev):
         
 @sv.on_rex(r"^设置(.*?)签$")
 async def theme_setting(bot, ev):
+    if not priv.check_priv(ev, priv.ADMIN):
+        await bot.finish(ev,"权限不足")
     gid: str = str(ev.group_id)
     for theme in FortuneThemesDict:
         if ev["match"].group(0)[2:-1] in FortuneThemesDict[theme]:
@@ -91,35 +90,34 @@ async def theme_setting(bot, ev):
 
 @sv.on_rex(r"^主题启用(.*?)$")
 async def theme_setting_2(bot, ev):
+    if not priv.check_priv(ev, priv.ADMIN):
+        await bot.finish(ev,"权限不足")
     gid: str = str(ev.group_id)
     for theme in FortuneThemesDict:
         if ev["match"].group(0).strip()[4:] in FortuneThemesDict[theme]:
             if not fortune_manager.divination_setting_2(theme, gid, True):
                 await bot.finish(ev, "该抽签主题已启用或者不存在该主题~")
             else:
-                theme: str = fortune_manager._group_rules[gid]
-                themelist = group_rule_str2list(theme)
-                themes_ret_str = ""
-                for _theme in themelist:
-                    themes_ret_str = themes_ret_str + FortuneThemesDict[_theme][0] + ","
-                await bot.finish(ev, f"已启用,当前已启用：{themes_ret_str[:-1]}")
+                themes_ret_str = ",".join([FortuneThemesDict[_theme][0] for _theme in group_rule_str2list(fortune_manager._group_rules[gid])])
+                await bot.finish(ev, f"已启用,当前已启用：{themes_ret_str}")
     
     await bot.finish(ev, "还没有这种抽签主题哦~")
 
 @sv.on_rex(r"^主题禁用(.*?)$")
 async def theme_setting_2(bot, ev):
+    if not priv.check_priv(ev, priv.ADMIN):
+        await bot.finish(ev,"权限不足")
     gid: str = str(ev.group_id)
     for theme in FortuneThemesDict:
         if ev["match"].group(0).strip()[4:] in FortuneThemesDict[theme]:
-            if not fortune_manager.divination_setting_2(theme, gid, False):
+            themelist = group_rule_str2list(fortune_manager._group_rules[gid])
+            if len(themelist) <= 1:
+                await bot.finish(ev, "请至少保留一个主题")
+            elif not fortune_manager.divination_setting_2(theme, gid, False):
                 await bot.finish(ev, "该抽签主题未启用或者不存在该主题~")
             else:
-                theme: str = fortune_manager._group_rules[gid]
-                themelist = group_rule_str2list(theme)
-                themes_ret_str = ""
-                for _theme in themelist:
-                    themes_ret_str = themes_ret_str + FortuneThemesDict[_theme][0] + ","
-                await bot.finish(ev, f"已禁用,当前已启用：{themes_ret_str[:-1]}")
+                themes_ret_str = ",".join([FortuneThemesDict[_theme][0] for _theme in themelist])
+                await bot.finish(ev, f"已禁用,当前已启用：{themes_ret_str}")
     
     await bot.finish(ev, "还没有这种抽签主题哦~")
 
