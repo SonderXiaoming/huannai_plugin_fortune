@@ -10,6 +10,11 @@ except ModuleNotFoundError:
 
 from .download import ResourceError, download_resource
 
+# 发送图片的协议
+# 可选file, base64
+# 当QQ客户端与bot端不在同一台计算机时，可用base64协议发送，但是发送图片太大可能会失败
+img_protocol = 'base64'
+
 '''
     抽签主题对应表，第一键值为“抽签设置”或“主题列表”展示的主题名称
     Key-Value: 主题资源文件夹名-设置主题别名

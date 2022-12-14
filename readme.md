@@ -63,12 +63,13 @@ https://github.com/SonderXiaoming/huannai_plugin_fortune
    ```
    git clone https://github.com/SonderXiaoming/huannai_plugin_fortune
    ```
+2. 安装依赖`pip3 install pydantic`或`pip install pydantic`
 
-2. 在 HoshinoBot\hoshino\config\ `__bot__.py` 文件的 MODULES_ON 加入 'huannai_plugin_fortune'
+3. 在 HoshinoBot\hoshino\config\ `__bot__.py` 文件的 MODULES_ON 加入 'huannai_plugin_fortune'
 
    然后重启 HoshinoBot
 
-3. 一些功能可自由配置，具体配置内容见下文
+4. 一些功能可自由配置，具体配置内容见下文
 
 使用[FloatTech-zbpdata/Fortune](https://github.com/FloatTech/zbpdata)全部主题。在`config.py`下设置`xxx_FLAG`以启用或关闭抽签随机主题（默认全部开启），例如：
 
