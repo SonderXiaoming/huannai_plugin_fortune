@@ -1,7 +1,8 @@
 import os
+import base64
 from hoshino import Service, priv
 from nonebot import MessageSegment
-from .config import FortuneThemesDict
+from .config import FortuneThemesDict,img_protocol
 from .data_source import fortune_manager
 from .extra_config_utils import group_rule_str2list
 
@@ -42,11 +43,17 @@ async def portune(bot, ev):
     is_first, image_file = fortune_manager.divine(gid, uid, nickname, None, None)
     if not image_file:
         await bot.finish(ev, "今日运势生成出错……") 
-
+    
+    if img_protocol == 'file':
+        img_file = MessageSegment.image(f'file:///{os.path.abspath(image_file)}')
+    elif img_protocol == 'base64':
+        image = open(os.path.abspath(image_file),'rb')
+        img_file = f'[CQ:image,file=base64://{base64.b64encode(image.read()).decode()}]'
+        
     if not is_first:
-        msg = MessageSegment.text("你今天抽过签了，再给你看一次哦🤗\n") + MessageSegment.image(f'file:///{os.path.abspath(image_file)}')
+        msg = MessageSegment.text("你今天抽过签了，再给你看一次哦🤗\n") + img_file
     else:
-        msg = MessageSegment.text("✨今日运势✨\n") + MessageSegment.image(f'file:///{os.path.abspath(image_file)}')
+        msg = MessageSegment.text("✨今日运势✨\n") + img_file
     
     await bot.send(ev, msg, at_sender=True)        
 
@@ -65,10 +72,16 @@ async def _(bot, ev):
                 if not image_file:
                     await bot.finish(ev,"今日运势生成出错……") 
         
+                if img_protocol == 'file':
+                    img_file = MessageSegment.image(f'file:///{os.path.abspath(image_file)}')
+                elif img_protocol == 'base64':
+                    image = open(os.path.abspath(image_file),'rb')
+                    img_file = f'[CQ:image,file=base64://{base64.b64encode(image.read()).decode()}]'
+
                 if not is_first:
-                    msg = MessageSegment.text("你今天抽过签了，再给你看一次哦🤗\n") + MessageSegment.image(f'file:///{os.path.abspath(image_file)}')
+                    msg = MessageSegment.text("你今天抽过签了，再给你看一次哦🤗\n") + img_file
                 else:
-                    msg = MessageSegment.text("✨今日运势✨\n") + MessageSegment.image(f'file:///{os.path.abspath(image_file)}')
+                    msg = MessageSegment.text("✨今日运势✨\n") + img_file
             
             await bot.finish(ev, msg, at_sender=True)
 
