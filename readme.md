@@ -105,6 +105,8 @@ AMAZING_GRACE_FLAG=true     # 奇异恩典·圣夜的小镇
 
 1.1.1 修复权限设置，修复小bug，优化代码
 
+1.1.2 可采用base64发送，防止cq与服务器不在一处造成发送失败，感谢[cpms](https://github.com/cpms)
+
 ## 抽签图片及文案资源
 
 1. [opqqq-plugin](https://github.com/opq-osc/opqqq-plugin)：原神、PCR、Hololive抽签主题；
